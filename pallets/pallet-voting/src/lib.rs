@@ -67,7 +67,7 @@ pub mod pallet {
 	#[scale_info(skip_type_params(T))]
     pub struct Proposal<T: Config> {
         pub creator: T::AccountId,
-		pub description: u64,
+		pub description: BoundedVec<u8, ConstU32<256>>,
         pub end: T::BlockNumber,
         pub yes_votes: u64,
         pub no_votes: u64,
@@ -77,7 +77,7 @@ pub mod pallet {
 	#[pallet::storage]
     #[pallet::getter(fn proposal_count)]
     pub type ProposalCount<T> = StorageValue<_, u64, ValueQuery>;
-//
+
 	#[pallet::storage]
     #[pallet::getter(fn proposals)]
     pub type Proposals<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, Proposal<T>>;
@@ -121,6 +121,11 @@ pub mod pallet {
 		NoneValue,
 		/// There was an attempt to increment the value in storage over `u32::MAX`.
 		StorageOverflow,
+		
+		// Proposal related errors 
+		ProposalNotFound,
+        VotingEnded,
+        VotingNotEnded,
 	}
 
 	/// The pallet's dispatchable functions ([`Call`]s).
@@ -137,6 +142,7 @@ pub mod pallet {
 	/// The [`weight`] macro is used to assign a weight to each call.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+
 		/// An example dispatchable that takes a single u32 value as a parameter, writes the value
 		/// to storage and emits an event.
 		///
@@ -189,6 +195,32 @@ pub mod pallet {
 					Ok(())
 				},
 			}
+		}
+
+		#[pallet::weight(10_000)]
+		pub fn create_proposal(
+            origin: OriginFor<T>,
+            description: Vec<u8>,
+            duration: T::BlockNumber,
+        ) -> DispatchResult {
+			Ok(())
+		}
+
+		#[pallet::weight(10_000)]
+        pub fn vote(
+            origin: OriginFor<T>,
+            proposal_hash: T::Hash,
+            vote: bool,
+        ) -> DispatchResult {
+			Ok(())
+		}
+
+		#[pallet::weight(10_000)]
+        pub fn finalize_proposal(
+            origin: OriginFor<T>,
+            proposal_hash: T::Hash,
+        ) -> DispatchResult {
+			Ok(())
 		}
 	}
 }
