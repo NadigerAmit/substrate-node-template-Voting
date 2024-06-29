@@ -258,7 +258,7 @@ impl pallet_template::Config for Runtime {
 impl pallet_voting::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_voting::weights::SubstrateWeight<Runtime>;
-	type BlockNumber = BlockNumber;
+	//type BlockNumber = BlockNumber;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

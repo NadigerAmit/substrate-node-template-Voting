@@ -53,7 +53,7 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// A type representing the weights required by the dispatchables of this pallet.
 		type WeightInfo: WeightInfo;
-		type BlockNumber: Parameter + Member + Default + Copy + MaxEncodedLen;
+		//type BlockNumber: Parameter + Member + Default + Copy + MaxEncodedLen;
 	}
 
 	/// A storage item for this pallet.
@@ -63,7 +63,7 @@ pub mod pallet {
     pub struct Proposal<T: Config> {
         pub creator: T::AccountId,
 		pub description: BoundedVec<u8, ConstU32<256>>,
-        pub end: T::BlockNumber,
+        pub end: BlockNumberFor<T>,
         pub yes_votes: u64,
         pub no_votes: u64,
         pub finalized: bool,
@@ -112,6 +112,8 @@ pub mod pallet {
         VotingEnded,
 		/// The voting still on.
         VotingNotEnded,
+		/// Description is too long .
+		DescriptionTooLong
 	}
 
 	/// The pallet's dispatchable functions ([`Call`]s).
@@ -133,8 +135,31 @@ pub mod pallet {
 		pub fn create_proposal(
             origin: OriginFor<T>,
             description: Vec<u8>,
-            duration: T::BlockNumber,
+            duration: BlockNumberFor<T>,
         ) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+            let current_block = <frame_system::Pallet<T>>::block_number();
+            let end_block = current_block + duration;
+
+			// Convert Vec<u8> to BoundedVec<u8, ConstU32<256>>
+			let bounded_description = BoundedVec::<u8, ConstU32<256>>::
+				try_from(description)
+				.map_err(|_| Error::<T>::DescriptionTooLong)?;
+
+			let proposal = Proposal {
+				creator: who.clone(),
+				description: bounded_description,
+				end: end_block,
+				yes_votes: 0,
+				no_votes: 0,
+				finalized: false,
+			};
+		
+			let proposal_hash = T::Hashing::hash_of(&proposal);
+			<Proposals<T>>::insert(proposal_hash, proposal);
+			<ProposalCount<T>>::put(<ProposalCount<T>>::get() + 1);
+		
+			Self::deposit_event(Event::ProposalCreated(who, proposal_hash));
 			Ok(())
 		}
 
