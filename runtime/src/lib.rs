@@ -44,6 +44,9 @@ pub use sp_runtime::{Perbill, Permill};
 /// Import the template pallet.
 pub use pallet_template;
 
+/// Import the pallet_voting.
+pub use pallet_voting;
+
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -251,6 +254,13 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+/// Configure the pallet_voting in pallets/pallet_voting.
+impl pallet_voting::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_voting::weights::SubstrateWeight<Runtime>;
+	type BlockNumber = BlockNumber;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 mod runtime {
@@ -292,6 +302,10 @@ mod runtime {
 	// Include the custom logic from the pallet-template in the runtime.
 	#[runtime::pallet_index(7)]
 	pub type TemplateModule = pallet_template;
+
+	// Include the custom logic from the pallet-template in the runtime.
+	#[runtime::pallet_index(8)]
+	pub type VotingModule = pallet_voting;
 }
 
 /// The address format for describing accounts.
