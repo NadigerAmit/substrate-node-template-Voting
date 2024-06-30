@@ -24,46 +24,47 @@ Once the voting period for a proposal ends, voters will no longer be able to vot
 Can get the result of the proposal. Whether the proposal is accepted*(True) or rejected(False)
 
 ### Events
-`ProposalCreated`: Emitted when a proposal is successfully created.
-`Voted`: Emitted when a user votes on a proposal.
-`ProposalResults`: Emitted when the results of a proposal are finalized.
+1. `ProposalCreated`: Emitted when a proposal is successfully created.
+
+2. `Voted`: Emitted when a user votes on a proposal.
+
+3. `ProposalResults`: Emitted when the results of a proposal are finalized.
 
 ### Errors
-`ProposalNotFound`: The proposal was not found.This error is returned when user gives the wrong or unavilable hash of the proposal i.e wrong unique id of proposal in `vote` or `get_proposal_results` api.
+1. `ProposalNotFound`: The proposal was not found.This error is returned when user gives the wrong or unavilable hash of the proposal i.e wrong unique id of proposal in `vote` or `get_proposal_results` api.
 
-`ProposalDescriptionTooLong`: The description of the proposal is too long.
+2. `ProposalDescriptionTooLong`: The description of the proposal is too long.
 
-`VotingEnded`: The voting period has already ended.This error is returned when user `vote` after the voting end period for the proposal is reached.
+3. `VotingEnded`: The voting period has already ended.This error is returned when user `vote` after the voting end period for the proposal is reached.
 
-`VotingNotEnded`: The voting period is still ongoing.This error is returned when user try to get the voting results before the voting end period is reached.
+4. `VotingNotEnded`: The voting period is still ongoing.This error is returned when user try to get the voting results before the voting end period is reached.
 
-`AlreadyVoted`: The user has already voted on this proposal and tries to again on same proposal.
+5. `AlreadyVoted`: The user has already voted on this proposal and tries to again on same proposal.
 
-`MaxVotersReached`: The maximum number of voters for the proposal has been reached.
+6. `MaxVotersReached`: The maximum number of voters for the proposal has been reached.
 
-Use the following command to build the node without launching it:
 
-## Dispatchable Functions or Extrinsics
-### create_proposal: 
+### Dispatchable Functions or Extrinsics
+#### 1. create_proposal: 
 Allows a user to create a new proposal.
-#### Parameters:
+##### Parameters:
 description: A description of the proposal.
 duration: The duration of the voting period in blocks.
-#### Emits: 
+##### Emits: 
 `ProposalCreated` event
 
-### vote: 
+#### 2. vote: 
 Allows a user to vote on an active proposal.
 #### Parameters:
 `proposal_hash`: The hash of the proposal.
 `vote`: A boolean indicating the vote (true for "Yes", false for "No").
-#### Emits: 
+##### Emits: 
 `Voted` event 
 
-### get_proposal_results: 
+#### 3. get_proposal_results: 
 Allows to retrieve the results of a proposal after the voting period has ended.
-#### Parameters:
+##### Parameters:
 `proposal_hash`: The hash of the proposal.
-#### Emits: 
+##### Emits: 
 `ProposalResults` Accepted(True) or Rejected(False)
 
