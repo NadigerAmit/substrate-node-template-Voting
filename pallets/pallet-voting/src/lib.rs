@@ -6,15 +6,13 @@ use frame_support::{
 	sp_runtime::traits::{Hash},
 };
 
-//use log::{info, debug};
-
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
 // FRAME pallets require their own "mock runtimes" to be able to run unit tests. This module
 // contains a mock runtime specific for testing this pallet's functionality.
-#[cfg(test)]
-mod mock;
+//#[cfg(test)]
+//mod mock;
 
 // This module contains the unit tests for this pallet.
 // Learn about pallet unit testing here: https://docs.substrate.io/test/unit-testing/
@@ -72,9 +70,11 @@ pub mod pallet {
 		pub voters: BoundedBTreeSet<T::AccountId, ConstU32<256>>,
     }
 
+	/*
 	#[pallet::storage]
     #[pallet::getter(fn proposal_count)]
     pub type ProposalCount<T> = StorageValue<_, u64, ValueQuery>;
+	*/
 
 	#[pallet::storage]
     #[pallet::getter(fn proposals)]
@@ -86,7 +86,10 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// A user has successfully proposal.
 		ProposalCreated(T::AccountId, T::Hash),
+
+		/// A user has successfully proposal.
         Voted(T::AccountId, T::Hash, bool),
+
        // ProposalFinalized(T::Hash, bool),
 		ProposalResults(T::Hash, bool),
 	}
@@ -94,33 +97,27 @@ pub mod pallet {
 	/// Errors that can be returned by this pallet.
 	#[pallet::error]
 	pub enum Error<T> {
+		
 		/// The proposal was not found.
 		ProposalNotFound,
-		/// The voting duration is already ended.
-        VotingEnded,
-		/// The voting still on.
-        VotingNotEnded,
+
 		/// Description of proposal is too long .
 		ProposalDescriptionTooLong,
+
+		/// The voting duration is already ended.
+        VotingEnded,
+
+		/// The voting still on.
+        VotingNotEnded,	
+
 		///Voter is already voted  .
 		AlreadyVoted,
+
 		/// Max ovetr is reached.
 		MaxVotersReached
-
 	}
 
 	/// The pallet's dispatchable functions ([`Call`]s).
-	///
-	/// Dispatchable functions allows users to interact with the pallet and invoke state changes.
-	/// These functions materialize as "extrinsics", which are often compared to transactions.
-	/// They must always return a `DispatchResult` and be annotated with a weight and call index.
-	///
-	/// The [`call_index`] macro is used to explicitly
-	/// define an index for calls in the [`Call`] enum. This is useful for pallets that may
-	/// introduce new dispatchables over time. If the order of a dispatchable changes, its index
-	/// will also change which will break backwards compatibility.
-	///
-	/// The [`weight`] macro is used to assign a weight to each call.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 
@@ -147,13 +144,12 @@ pub mod pallet {
 				end: end_block,
 				yes_votes: 0,
 				no_votes: 0,
-				//finalized: false,
 				voters: BoundedBTreeSet::default(),
+				//finalized: false,
 			};
 		
 			let proposal_hash = T::Hashing::hash_of(&proposal);
 			<Proposals<T>>::insert(proposal_hash, proposal);
-			<ProposalCount<T>>::put(<ProposalCount<T>>::get() + 1);
 		
 			Self::deposit_event(Event::ProposalCreated(who, proposal_hash));
 			Ok(())
@@ -172,16 +168,13 @@ pub mod pallet {
                 let proposal = proposal_opt.as_mut().ok_or(Error::<T>::ProposalNotFound)?;
 				let current_block = <frame_system::Pallet<T>>::block_number();
 				ensure!(current_block <= proposal.end, Error::<T>::VotingEnded);
-				//ensure!(!proposal.finalized, Error::<T>::VotingEnded);
 				
 				ensure!(!proposal.voters.contains(&who), Error::<T>::AlreadyVoted);
 				proposal.voters.try_insert(who.clone()).map_err(|_| Error::<T>::MaxVotersReached)?;
 
 				if vote {
-					//proposal.yes_votes = proposal.yes_votes.checked_add(1).expect("Crossed YES voting limit");
 					proposal.yes_votes = proposal.yes_votes.saturating_add(1);
 				} else {
-					//proposal.no_votes = proposal.no_votes.checked_add(1).expect("Crossed NO voting limit");
 					proposal.no_votes = proposal.no_votes.saturating_add(1);
 				}
 
@@ -189,7 +182,27 @@ pub mod pallet {
 				Ok(())
             })
 		}
-/*
+
+		#[pallet::call_index(3)]
+		#[pallet::weight(T::WeightInfo::get_proposal_results())]
+		pub fn get_proposal_results(
+			origin: OriginFor<T>,
+			proposal_hash: T::Hash,
+		) -> DispatchResult {
+			let _ = ensure_signed(origin)?;
+
+			let proposal = Proposals::<T>::get(proposal_hash).ok_or(Error::<T>::ProposalNotFound)?;
+			let current_block = <frame_system::Pallet<T>>::block_number();
+			ensure!(current_block > proposal.end, Error::<T>::VotingNotEnded);
+			
+			let approved = proposal.yes_votes > proposal.no_votes;
+
+			Self::deposit_event(Event::ProposalResults(proposal_hash, approved));
+            Ok(())
+		}
+	}
+
+	/*
 		#[pallet::call_index(2)]
 		#[pallet::weight(T::WeightInfo::finalize_proposal())]
         pub fn finalize_proposal(
@@ -210,22 +223,4 @@ pub mod pallet {
             })
 		}
 */
-		#[pallet::call_index(3)]
-		#[pallet::weight(T::WeightInfo::finalize_proposal())]
-		pub fn get_proposal_results(
-			origin: OriginFor<T>,
-			proposal_hash: T::Hash,
-		) -> DispatchResult {
-			let _ = ensure_signed(origin)?;
-
-			let proposal = Proposals::<T>::get(proposal_hash).ok_or(Error::<T>::ProposalNotFound)?;
-			let current_block = <frame_system::Pallet<T>>::block_number();
-			ensure!(current_block > proposal.end, Error::<T>::VotingNotEnded);
-			
-			let approved = proposal.yes_votes > proposal.no_votes;
-
-			Self::deposit_event(Event::ProposalResults(proposal_hash, approved));
-            Ok(())
-		}
-	}
 }

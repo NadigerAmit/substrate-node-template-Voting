@@ -36,7 +36,7 @@ use core::marker::PhantomData;
 pub trait WeightInfo {
 	fn create_proposal() -> Weight;
 	fn vote() -> Weight;
-	fn finalize_proposal() -> Weight;
+	fn get_proposal_results() -> Weight;
 }
 
 /// Weights for pallet_template using the Substrate node and recommended hardware.
@@ -61,7 +61,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(10_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	fn finalize_proposal() -> Weight {
+	fn get_proposal_results() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
@@ -91,7 +91,7 @@ impl WeightInfo for () {
 		Weight::from_parts(10_000, 0)
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
-	fn finalize_proposal() -> Weight {
+	fn get_proposal_results() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
