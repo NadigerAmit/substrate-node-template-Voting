@@ -3,8 +3,10 @@
 
 use frame_support::{
 	pallet_prelude::*,
-	sp_runtime::traits::{AtLeast32BitUnsigned, CheckedAdd, CheckedMul, CheckedSub, Convert, Hash},
+	sp_runtime::traits::{Hash},
 };
+
+//use log::{info, debug};
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -32,7 +34,7 @@ pub use weights::*;
 pub mod pallet {
 	// Import various useful types required by all FRAME pallets.
 	use super::*;
-	use frame_support::{dispatch::DispatchResult, pallet_prelude::*, BoundedVec};
+	use frame_support::{dispatch::DispatchResult, BoundedVec};
 	use frame_system::pallet_prelude::*;
 	use scale_info::TypeInfo;
 	use scale_info::prelude::vec::Vec;
@@ -66,7 +68,8 @@ pub mod pallet {
         pub end: BlockNumberFor<T>,
         pub yes_votes: u64,
         pub no_votes: u64,
-        pub finalized: bool,
+        //pub finalized: bool,
+		pub voters: BoundedBTreeSet<T::AccountId, ConstU32<256>>,
     }
 
 	#[pallet::storage]
@@ -78,32 +81,17 @@ pub mod pallet {
     pub type Proposals<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, Proposal<T>>;
 
 	/// Events that functions in this pallet can emit.
-	///
-	/// Events are a simple means of indicating to the outside world (such as dApps, chain explorers
-	/// or other users) that some notable update in the runtime has occurred. In a FRAME pallet, the
-	/// documentation for each event field and its parameters is added to a node's metadata so it
-	/// can be used by external interfaces or tools.
-	///
-	///	The `generate_deposit` macro generates a function on `Pallet` called `deposit_event` which
-	/// will convert the event type of your pallet into `RuntimeEvent` (declared in the pallet's
-	/// [`Config`] trait) and deposit it using [`frame_system::Pallet::deposit_event`].
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A user has successfully proposal.
 		ProposalCreated(T::AccountId, T::Hash),
         Voted(T::AccountId, T::Hash, bool),
-        ProposalFinalized(T::Hash, bool),
+       // ProposalFinalized(T::Hash, bool),
+		ProposalResults(T::Hash, bool),
 	}
 
 	/// Errors that can be returned by this pallet.
-	///
-	/// Errors tell users that something went wrong so it's important that their naming is
-	/// informative. Similar to events, error documentation is added to a node's metadata so it's
-	/// equally important that they have helpful documentation associated with them.
-	///
-	/// This type of runtime error can be up to 4 bytes in size should you want to return additional
-	/// information.
 	#[pallet::error]
 	pub enum Error<T> {
 		/// The proposal was not found.
@@ -112,8 +100,13 @@ pub mod pallet {
         VotingEnded,
 		/// The voting still on.
         VotingNotEnded,
-		/// Description is too long .
-		DescriptionTooLong
+		/// Description of proposal is too long .
+		ProposalDescriptionTooLong,
+		///Voter is already voted  .
+		AlreadyVoted,
+		/// Max ovetr is reached.
+		MaxVotersReached
+
 	}
 
 	/// The pallet's dispatchable functions ([`Call`]s).
@@ -131,20 +124,22 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 
-		#[pallet::weight(10_000)]
+		#[pallet::call_index(0)]
+		#[pallet::weight(T::WeightInfo::create_proposal())]
 		pub fn create_proposal(
             origin: OriginFor<T>,
             description: Vec<u8>,
             duration: BlockNumberFor<T>,
         ) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+			log::info!("create_proposal called {:?}",who);
             let current_block = <frame_system::Pallet<T>>::block_number();
             let end_block = current_block + duration;
 
 			// Convert Vec<u8> to BoundedVec<u8, ConstU32<256>>
 			let bounded_description = BoundedVec::<u8, ConstU32<256>>::
 				try_from(description)
-				.map_err(|_| Error::<T>::DescriptionTooLong)?;
+				.map_err(|_| Error::<T>::ProposalDescriptionTooLong)?;
 
 			let proposal = Proposal {
 				creator: who.clone(),
@@ -152,7 +147,8 @@ pub mod pallet {
 				end: end_block,
 				yes_votes: 0,
 				no_votes: 0,
-				finalized: false,
+				//finalized: false,
+				voters: BoundedBTreeSet::default(),
 			};
 		
 			let proposal_hash = T::Hashing::hash_of(&proposal);
@@ -163,21 +159,73 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(10_000)]
+		#[pallet::call_index(1)]
+		#[pallet::weight(T::WeightInfo::vote())]
         pub fn vote(
             origin: OriginFor<T>,
             proposal_hash: T::Hash,
             vote: bool,
         ) -> DispatchResult {
-			Ok(())
-		}
+			let who = ensure_signed(origin)?;
+			log::info!("vote called {:?}",who);
+            Proposals::<T>::try_mutate(proposal_hash, |proposal_opt| {
+                let proposal = proposal_opt.as_mut().ok_or(Error::<T>::ProposalNotFound)?;
+				let current_block = <frame_system::Pallet<T>>::block_number();
+				ensure!(current_block <= proposal.end, Error::<T>::VotingEnded);
+				//ensure!(!proposal.finalized, Error::<T>::VotingEnded);
+				
+				ensure!(!proposal.voters.contains(&who), Error::<T>::AlreadyVoted);
+				proposal.voters.try_insert(who.clone()).map_err(|_| Error::<T>::MaxVotersReached)?;
 
-		#[pallet::weight(10_000)]
+				if vote {
+					//proposal.yes_votes = proposal.yes_votes.checked_add(1).expect("Crossed YES voting limit");
+					proposal.yes_votes = proposal.yes_votes.saturating_add(1);
+				} else {
+					//proposal.no_votes = proposal.no_votes.checked_add(1).expect("Crossed NO voting limit");
+					proposal.no_votes = proposal.no_votes.saturating_add(1);
+				}
+
+				Self::deposit_event(Event::Voted(who, proposal_hash, vote));
+				Ok(())
+            })
+		}
+/*
+		#[pallet::call_index(2)]
+		#[pallet::weight(T::WeightInfo::finalize_proposal())]
         pub fn finalize_proposal(
             origin: OriginFor<T>,
             proposal_hash: T::Hash,
         ) -> DispatchResult {
-			Ok(())
+			let who = ensure_signed(origin)?;
+			log::info!("finalize_proposal called {:?}",who);
+            Proposals::<T>::try_mutate(proposal_hash, |proposal_opt| {
+                let proposal = proposal_opt.as_mut().ok_or(Error::<T>::ProposalNotFound)?;
+                ensure!(proposal.end <= <frame_system::Pallet<T>>::block_number(), Error::<T>::VotingNotEnded);
+
+                proposal.finalized = true;
+				let approved = proposal.yes_votes > proposal.no_votes;
+
+                Self::deposit_event(Event::ProposalFinalized(proposal_hash, approved));
+                Ok(())
+            })
+		}
+*/
+		#[pallet::call_index(3)]
+		#[pallet::weight(T::WeightInfo::finalize_proposal())]
+		pub fn get_proposal_results(
+			origin: OriginFor<T>,
+			proposal_hash: T::Hash,
+		) -> DispatchResult {
+			let _ = ensure_signed(origin)?;
+
+			let proposal = Proposals::<T>::get(proposal_hash).ok_or(Error::<T>::ProposalNotFound)?;
+			let current_block = <frame_system::Pallet<T>>::block_number();
+			ensure!(current_block > proposal.end, Error::<T>::VotingNotEnded);
+			
+			let approved = proposal.yes_votes > proposal.no_votes;
+
+			Self::deposit_event(Event::ProposalResults(proposal_hash, approved));
+            Ok(())
 		}
 	}
 }
