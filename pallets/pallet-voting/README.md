@@ -25,7 +25,7 @@ Can get the result of the proposal. Whether the proposal is accepted*(True) or r
 
 ### Events
 `ProposalCreated`: Emitted when a proposal is successfully created.
-`Voted`:` Emitted when a user votes on a proposal.
+`Voted`: Emitted when a user votes on a proposal.
 `ProposalResults`: Emitted when the results of a proposal are finalized.
 
 ### Errors
