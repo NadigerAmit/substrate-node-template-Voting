@@ -7,8 +7,35 @@ This is a custom Substrate pallet that implements a decentralized voting system.
 1. Allow users to create new proposals by submitting a description and a duration for the voting period.
 2. Store proposals on-chain with a unique identifier, the creator's address, the description, and the voting period.
 3. Allow users to cast votes on active proposals, with each user able to vote only once per proposal.
-Support "Yes" or "No" votes.
-4. Finalize the voting results once the voting period ends, marking the proposal as approved if the majority of votes are "Yes," otherwise, it is rejected.
+4. Support "Yes" or "No" votes.
+5. Finalize the voting results once the voting period ends, marking the proposal as approved if the majority of votes are "Yes," otherwise, it is rejected.
+
+## Architecture
+### Pallet Structure
+The pallet structure includes the following components:
+
+1. Config: Defines the pallet's configuration.
+2. Event: Defines events emitted by the pallet.
+3. Storage: Defines the storage items for the pallet.
+4. Call: Defines the callable functions (extrinsics) of the pallet.
+5. Error: Defines the errors that can occur within the pallet.
+
+### Storage
+The pallet includes the following storage items:
+
+`Proposals`: Maps a proposal's hash to its corresponding data.
+```sh
+
+pub struct Proposal<T: Config> {
+  pub creator: T::AccountId,
+	pub description: BoundedVec<u8, ConstU32<256>>,
+  pub end: BlockNumberFor<T>,
+  pub yes_votes: u64,
+  pub no_votes: u64,
+	pub voters: BoundedBTreeSet<T::AccountId, ConstU32<256>>,
+}
+
+```
 
 ## Features
 
@@ -49,7 +76,10 @@ Can get the result of the proposal. Whether the proposal is accepted*(True) or r
 Allows a user to create a new proposal.
 ##### Parameters:
 description: A description of the proposal.
-duration: The duration of the voting period in blocks.
+duration: The duration of the voting period in blocks(BlockNumberFor). i.e 1. BlockNumberFor is the duration to create one block which is default configured to 6 sec in substrate framework. 
+###### Calulation
+If you want to have the duration as 1 minute i.e 60 sec , then `Duration = Duration in sec / BlockNumberFor`. 
+i.e `Duration = 60 ssec / 6 sec` Then `Duration = 10` as `BlockNumberFor` is configured as `6 sec`.
 ##### Emits: 
 `ProposalCreated` event
 
@@ -68,3 +98,13 @@ Allows to retrieve the results of a proposal after the voting period has ended.
 ##### Emits: 
 `ProposalResults` Accepted(True) or Rejected(False)
 
+## Integration Testing with Polkadot.js Apps
+Create Multiple Accounts:
+
+Navigate to the "Accounts" tab and create multiple accounts.
+Fund the new accounts from the default account (Alice).
+
+Interact with the Pallet:
+
+Use the "Extrinsics" tab to call create_proposal, vote, and finalize_proposal extrinsics from different accounts.
+Verify the state changes using the "Chain state" tab.

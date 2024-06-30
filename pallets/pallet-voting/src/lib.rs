@@ -66,15 +66,8 @@ pub mod pallet {
         pub end: BlockNumberFor<T>,
         pub yes_votes: u64,
         pub no_votes: u64,
-        //pub finalized: bool,
 		pub voters: BoundedBTreeSet<T::AccountId, ConstU32<256>>,
     }
-
-	/*
-	#[pallet::storage]
-    #[pallet::getter(fn proposal_count)]
-    pub type ProposalCount<T> = StorageValue<_, u64, ValueQuery>;
-	*/
 
 	#[pallet::storage]
     #[pallet::getter(fn proposals)]
@@ -129,7 +122,7 @@ pub mod pallet {
             duration: BlockNumberFor<T>,
         ) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			log::info!("create_proposal called {:?}",who);
+			//log::info!("create_proposal called {:?}",who);
             let current_block = <frame_system::Pallet<T>>::block_number();
             let end_block = current_block + duration;
 
@@ -163,7 +156,6 @@ pub mod pallet {
             vote: bool,
         ) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			log::info!("vote called {:?}",who);
             Proposals::<T>::try_mutate(proposal_hash, |proposal_opt| {
                 let proposal = proposal_opt.as_mut().ok_or(Error::<T>::ProposalNotFound)?;
 				let current_block = <frame_system::Pallet<T>>::block_number();
@@ -201,26 +193,4 @@ pub mod pallet {
             Ok(())
 		}
 	}
-
-	/*
-		#[pallet::call_index(2)]
-		#[pallet::weight(T::WeightInfo::finalize_proposal())]
-        pub fn finalize_proposal(
-            origin: OriginFor<T>,
-            proposal_hash: T::Hash,
-        ) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			log::info!("finalize_proposal called {:?}",who);
-            Proposals::<T>::try_mutate(proposal_hash, |proposal_opt| {
-                let proposal = proposal_opt.as_mut().ok_or(Error::<T>::ProposalNotFound)?;
-                ensure!(proposal.end <= <frame_system::Pallet<T>>::block_number(), Error::<T>::VotingNotEnded);
-
-                proposal.finalized = true;
-				let approved = proposal.yes_votes > proposal.no_votes;
-
-                Self::deposit_event(Event::ProposalFinalized(proposal_hash, approved));
-                Ok(())
-            })
-		}
-*/
 }
