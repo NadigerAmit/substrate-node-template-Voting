@@ -23,19 +23,8 @@ The pallet structure includes the following components:
 ### Storage
 The pallet includes the following storage items:
 
-`Proposals`: Maps a proposal's hash to its corresponding data.
-```sh
+`Proposals`: Maps a proposal's hash to its corresponding proposal data.
 
-pub struct Proposal<T: Config> {
-  pub creator: T::AccountId,
-  pub description: BoundedVec<u8, ConstU32<256>>,
-  pub end: BlockNumberFor<T>,
-  pub yes_votes: u64,
-  pub no_votes: u64,
-  pub voters: BoundedBTreeSet<T::AccountId, ConstU32<256>>,
-}
-
-```
 
 ## Features
 
@@ -75,17 +64,25 @@ Can get the result of the proposal. Whether the proposal is accepted*(True) or r
 #### 1. create_proposal: 
 Allows a user to create a new proposal.
 ##### Parameters:
-description: A description of the proposal.
-duration: The duration of the voting period in blocks(BlockNumberFor). i.e 1. BlockNumberFor is the duration to create one block which is default configured to 6 sec in substrate framework. 
+`description`: A description of the proposal.
+
+`duration`: The duration of the voting period in blocks(BlockNumberFor). i.e 1. BlockNumberFor is the duration to create one block which is default configured to 6 sec in substrate framework. 
 ###### Calulation
-If you want to have the duration as 1 minute i.e 60 sec , then `Duration = Duration in sec / BlockNumberFor`. 
-i.e `Duration = 60 ssec / 6 sec` Then `Duration = 10` as `BlockNumberFor` is configured as `6 sec`.
+If you want to have the duration as 1 minute i.e 60 sec , then below is the calculation
+
+```sh
+Duration in Blocks = Duration in sec / BlockNumberFor
+Duration in Blocks = 60 sec / 6 sec
+Duration in Blocks = 10 
+
+```
+Since `BlockNumberFor` is configured as `6 sec`in substrate framework.
 ##### Emits: 
 `ProposalCreated` event
 
 #### 2. vote: 
 Allows a user to vote on an active proposal.
-#### Parameters:
+##### Parameters:
 `proposal_hash`: The hash of the proposal.
 `vote`: A boolean indicating the vote (true for "Yes", false for "No").
 ##### Emits: 
