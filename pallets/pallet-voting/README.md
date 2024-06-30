@@ -28,11 +28,11 @@ The pallet includes the following storage items:
 
 pub struct Proposal<T: Config> {
   pub creator: T::AccountId,
-	pub description: BoundedVec<u8, ConstU32<256>>,
+  pub description: BoundedVec<u8, ConstU32<256>>,
   pub end: BlockNumberFor<T>,
   pub yes_votes: u64,
   pub no_votes: u64,
-	pub voters: BoundedBTreeSet<T::AccountId, ConstU32<256>>,
+  pub voters: BoundedBTreeSet<T::AccountId, ConstU32<256>>,
 }
 
 ```
