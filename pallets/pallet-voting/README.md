@@ -96,12 +96,5 @@ Allows to retrieve the results of a proposal after the voting period has ended.
 `ProposalResults` Accepted(True) or Rejected(False)
 
 ## Integration Testing with Polkadot.js Apps
-Create Multiple Accounts:
-
-Navigate to the "Accounts" tab and create multiple accounts.
-Fund the new accounts from the default account (Alice).
-
-Interact with the Pallet:
-
-Use the "Extrinsics" tab to call create_proposal, vote, and finalize_proposal extrinsics from different accounts.
-Verify the state changes using the "Chain state" tab.
+Please refer to main README of this project.
+[https://github.com/NadigerAmit/substrate-node-template-Voting/blob/main/README.md]
