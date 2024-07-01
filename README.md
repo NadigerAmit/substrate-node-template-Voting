@@ -6,6 +6,7 @@ The substrate-node-template-Voting is a blockchain node built on the Substrate f
 ## Overview of Substrate
 Substrate is a modular framework for building blockchain networks. It provides a highly customizable environment that allows developers to tailor their blockchain’s consensus, networking, and state transition functions. The Substrate Node Template is a pre-configured, ready-to-use Substrate node that serves as a starting point for building custom blockchain solutions.
 
+## How to build and run the node 
 As this project is built on the substrate-node-template, so all the build commands and how to run is same. Please see below link for basic info such as build, run ,etc .
 [https://github.com/substrate-developer-hub/substrate-node-template/blob/main/README.md]
 
@@ -38,8 +39,8 @@ Refer to [https://github.com/substrate-developer-hub/substrate-node-template/blo
 2. Open the Polkadot.js app and connect it to your local node.
 
 
-### Step-by-Step Guide
-# 1. Transfer Funds to Default Accounts
+## Step-by-Step Guide
+### Transfer Funds to Default Accounts
 To enable accounts other than Alice, Alice-stash, Bob, Bob-stash to participate in voting, you need to transfer some balance to them.
 
 #### Go to Accounts -> Accounts.
@@ -98,7 +99,7 @@ Example: `0x57697c5970983b431d34f39ce6ce5b9d2561391852eba4c2ca1cf3bc0e1226d3`
 
 7. Click Submit signed Transaction and confirm.
 
-8. Repeat the above steps for other accounts like Bob, Charlie, Dave, etc.
+8. Repeat the above steps for other accounts like Bob, Charlie, Dave, etc who has balance.
 
 ### Get Proposal Results
 After the voting period has ended (e.g., 10 blocks):
@@ -123,7 +124,7 @@ After the voting period has ended (e.g., 10 blocks):
 
 2. Call create_proposal with description "Proposal 1" and duration 10.
 
-#### Voting on the Proposal
+#### 2. Voting on the Proposal
 
 1. Select Bob.
 
@@ -133,7 +134,7 @@ After the voting period has ended (e.g., 10 blocks):
 
 4. Call vote with the same proposal_hash and vote false.
 
-### Finalizing the Proposal
+#### 3. Finalizing the Proposal
 
 1. Wait for the voting period to end (e.g., 10 blocks).
 
