@@ -1,223 +1,149 @@
-# Substrate Node Template
 
-A fresh [Substrate](https://substrate.io/) node, ready for hacking :rocket:
 
-A standalone version of this template is available for each release of Polkadot
-in the [Substrate Developer Hub Parachain
-Template](https://github.com/substrate-developer-hub/substrate-parachain-template/)
-repository. The parachain template is generated directly at each Polkadot
-release branch from the [Node Template in
-Substrate](https://github.com/paritytech/polkadot-sdk/tree/master/substrate/bin/node-template)
-upstream
+# substrate-node-template-Voting
+The substrate-node-template-Voting is a blockchain node built on the Substrate framework, leveraging the Substrate Node Template. It has been enhanced with a custom voting pallet to enable decentralized voting functionality. This introduction will cover the core components and capabilities of this project, focusing on how the voting system has been integrated and how it operates within the Substrate ecosystem.
 
-It is usually best to use the stand-alone version to start a new project. All
-bugs, suggestions, and feature requests should be made upstream in the
-[Substrate](https://github.com/paritytech/polkadot-sdk/tree/master/substrate)
-repository.
+## Overview of Substrate
+Substrate is a modular framework for building blockchain networks. It provides a highly customizable environment that allows developers to tailor their blockchain’s consensus, networking, and state transition functions. The Substrate Node Template is a pre-configured, ready-to-use Substrate node that serves as a starting point for building custom blockchain solutions.
 
-## Getting Started
+As this project is built on the substrate-node-template, so all the build commands and how to run is same. Please see below link for basic info such as build, run ,etc .
+[https://github.com/substrate-developer-hub/substrate-node-template/blob/main/README.md]
 
-Depending on your operating system and Rust version, there might be additional
-packages required to compile this template. Check the
-[Install](https://docs.substrate.io/install/) instructions for your platform for
-the most common dependencies. Alternatively, you can use one of the [alternative
-installation](#alternatives-installations) options.
+## Key Features of substrate-node-template-Voting
+1. Modular Design: Inherits the modular design of Substrate, allowing easy integration and customization of pallets (modules) to extend functionality.
 
-### Build
+2. Voting Pallet Integration: Includes a custom-built voting pallet that facilitates proposal creation, voting, and result finalization.
 
-Use the following command to build the node without launching it:
+3. Decentralized Voting: Enables users to create proposals, cast votes, and view results in a decentralized manner, leveraging blockchain transparency and immutability.
 
-```sh
-cargo build --release
-```
+4. Account Management: Uses Substrate’s robust account and balance management system to handle voter accounts and ensure secure transactions.
 
-### Embedded Docs
+5. Event-Driven Architecture: Utilizes Substrate’s event system to log and handle important actions such as proposal creation and vote casting.
 
-After you build the project, you can use the following command to explore its
-parameters and subcommands:
+## Voting Pallet Capabilities
+The custom voting pallet added to the substrate-node-template-Voting project introduces several key functionalities:
 
-```sh
-./target/release/node-template -h
-```
+1. Proposal Creation: Users can create new proposals by submitting a description and specifying the voting duration. Each proposal is stored on-chain with a unique identifier.
 
-You can generate and view the [Rust
-Docs](https://doc.rust-lang.org/cargo/commands/cargo-doc.html) for this template
-with this command:
+2. Voting: Users can cast votes on active proposals. Each user is limited to one vote per proposal, ensuring fair voting practices.
 
-```sh
-cargo +nightly doc --open
-```
+3. Result Finalization: After the voting period ends, the results can be finalized. A proposal is concluded as approved if it receives a majority of "Yes" votes; otherwise, it is rejected.
 
-### Single-Node Development Chain
+4. Event Emission: The pallet emits events for proposal creation, voting actions, and result finalization, allowing easy tracking and auditing of the voting process.
 
-The following command starts a single-node development chain that doesn't
-persist state:
+## Testing guide on for voting Functionality using the Polkadot.js
+### Prerequisites
+1. Ensure you have a local Substrate node running with your custom pallet integrated.
+Refer to [https://github.com/substrate-developer-hub/substrate-node-template/blob/main/README.md]
+2. Open the Polkadot.js app and connect it to your local node.
 
-```sh
-./target/release/node-template --dev
-```
 
-To purge the development chain's state, run the following command:
+### Step-by-Step Guide
+# 1. Transfer Funds to Default Accounts
+To enable accounts other than Alice, Alice-stash, Bob, Bob-stash to participate in voting, you need to transfer some balance to them.
 
-```sh
-./target/release/node-template purge-chain --dev
-```
+#### Go to Accounts -> Accounts.
+1. Select Alice or Bob who have default balances.
 
-To start the development chain with detailed logging, run the following command:
+2. Click on the Transfer button next to the account name.
 
-```sh
-RUST_BACKTRACE=1 ./target/release/node-template -ldebug --dev
-```
+3. Enter the account name you want to transfer to (e.g., charlie, dave).
 
-Development chains:
+4. Enter the amount of balance to transfer (e.g., 1000 units).
 
-- Maintain state in a `tmp` folder while the node is running.
-- Use the **Alice** and **Bob** accounts as default validator authorities.
-- Use the **Alice** account as the default `sudo` account.
-- Are preconfigured with a genesis state (`/node/src/chain_spec.rs`) that
-  includes several prefunded development accounts.
+5. Click Make Transfer and confirm the transaction.
 
-To persist chain state between runs, specify a base path by running a command
-similar to the following:
+## From here pallet-voting test begins 
+### Create a Proposal
+1. Go to Developer -> Extrinsics.
 
-```sh
-// Create a folder to use as the db base path
-$ mkdir my-chain-state
+2. Select Alice (or any funded account) from the "using the selected account" dropdown.
 
-// Use of that folder to store the chain state
-$ ./target/release/node-template --dev --base-path ./my-chain-state/
+3. In the "submit the following extrinsic" section:
 
-// Check the folder structure created inside the base path after running the chain
-$ ls ./my-chain-state
-chains
-$ ls ./my-chain-state/chains/
-dev
-$ ls ./my-chain-state/chains/dev
-db keystore network
-```
+4. Select "VotingModule" pallet .
 
-### Connect with Polkadot-JS Apps Front-End
+5. Select the create_proposal function.
 
-After you start the node template locally, you can interact with it using the
-hosted version of the [Polkadot/Substrate
-Portal](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944)
-front-end by connecting to the local node endpoint. A hosted version is also
-available on [IPFS (redirect) here](https://dotapps.io/) or [IPNS (direct)
-here](ipns://dotapps.io/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/explorer). You can
-also find the source code and instructions for hosting your own instance on the
-[`polkadot-js/apps`](https://github.com/polkadot-js/apps) repository.
+6. Enter the description (e.g., "Proposal 1") and duration (e.g., 10 blocks).
 
-### Multi-Node Local Testnet
+7. Click Submit Transaction and confirm.
 
-If you want to see the multi-node consensus algorithm in action, see [Simulate a
-network](https://docs.substrate.io/tutorials/build-a-blockchain/simulate-network/).
 
-## Template Structure
+### Notedown the uniqueId of proposal
+1. Go to Developer -> Network -> Explorer -> Recent events section.
 
-A Substrate project such as this consists of a number of components that are
-spread across a few directories.
+2. Select the event which corresponds to "votingModule.ProposalCreated"
 
-### Node
+3. Confirm the block number where this transaction is stored.
 
-A blockchain node is an application that allows users to participate in a
-blockchain network. Substrate-based blockchain nodes expose a number of
-capabilities:
+4. Notedown the corresponding H256. This is the uniqueId for proposal 
 
-- Networking: Substrate nodes use the [`libp2p`](https://libp2p.io/) networking
-  stack to allow the nodes in the network to communicate with one another.
-- Consensus: Blockchains must have a way to come to
-  [consensus](https://docs.substrate.io/fundamentals/consensus/) on the state of
-  the network. Substrate makes it possible to supply custom consensus engines
-  and also ships with several consensus mechanisms that have been built on top
-  of [Web3 Foundation
-  research](https://research.web3.foundation/en/latest/polkadot/NPoS/index.html).
-- RPC Server: A remote procedure call (RPC) server is used to interact with
-  Substrate nodes.
+5. The above unique id will be used for Vote and getPropsalResults
 
-There are several files in the `node` directory. Take special note of the
-following:
+Example: `0x57697c5970983b431d34f39ce6ce5b9d2561391852eba4c2ca1cf3bc0e1226d3`
 
-- [`chain_spec.rs`](./node/src/chain_spec.rs): A [chain
-  specification](https://docs.substrate.io/build/chain-spec/) is a source code
-  file that defines a Substrate chain's initial (genesis) state. Chain
-  specifications are useful for development and testing, and critical when
-  architecting the launch of a production chain. Take note of the
-  `development_config` and `testnet_genesis` functions,. These functions are
-  used to define the genesis state for the local development chain
-  configuration. These functions identify some [well-known
-  accounts](https://docs.substrate.io/reference/command-line-tools/subkey/) and
-  use them to configure the blockchain's initial state.
-- [`service.rs`](./node/src/service.rs): This file defines the node
-  implementation. Take note of the libraries that this file imports and the
-  names of the functions it invokes. In particular, there are references to
-  consensus-related topics, such as the [block finalization and
-  forks](https://docs.substrate.io/fundamentals/consensus/#finalization-and-forks)
-  and other [consensus
-  mechanisms](https://docs.substrate.io/fundamentals/consensus/#default-consensus-models)
-  such as Aura for block authoring and GRANDPA for finality.
+### To vote on the proposal from different accounts:
+1. Go to Developer -> Extrinsics.
 
-### Runtime
+2. Select an account from the "using the selected account" dropdown (e.g., Alice, Bob).
 
-In Substrate, the terms "runtime" and "state transition function" are analogous.
-Both terms refer to the core logic of the blockchain that is responsible for
-validating blocks and executing the state changes they define. The Substrate
-project in this repository uses
-[FRAME](https://docs.substrate.io/learn/runtime-development/#frame) to construct
-a blockchain runtime. FRAME allows runtime developers to declare domain-specific
-logic in modules called "pallets". At the heart of FRAME is a helpful [macro
-language](https://docs.substrate.io/reference/frame-macros/) that makes it easy
-to create pallets and flexibly compose them to create blockchains that can
-address [a variety of needs](https://substrate.io/ecosystem/projects/).
+3. In the "submit the following extrinsic" section:
 
-Review the [FRAME runtime implementation](./runtime/src/lib.rs) included in this
-template and note the following:
+4. Select "VotingModule"  pallet.
 
-- This file configures several pallets to include in the runtime. Each pallet
-  configuration is defined by a code block that begins with `impl
-$PALLET_NAME::Config for Runtime`.
-- The pallets are composed into a single runtime by way of the
-  [`construct_runtime!`](https://paritytech.github.io/substrate/master/frame_support/macro.construct_runtime.html)
-  macro, which is part of the [core FRAME pallet
-  library](https://docs.substrate.io/reference/frame-pallets/#system-pallets).
+5. Select the vote function.
 
-### Pallets
+6. Enter the proposal_hash (you can find this hash in the events or storage) and vote (true for "Yes", false for "No").
 
-The runtime in this project is constructed using many FRAME pallets that ship
-with [the Substrate
-repository](https://github.com/paritytech/polkadot-sdk/tree/master/substrate/frame) and a
-template pallet that is [defined in the
-`pallets`](./pallets/template/src/lib.rs) directory.
+7. Click Submit signed Transaction and confirm.
 
-A FRAME pallet is comprised of a number of blockchain primitives, including:
+8. Repeat the above steps for other accounts like Bob, Charlie, Dave, etc.
 
-- Storage: FRAME defines a rich set of powerful [storage
-  abstractions](https://docs.substrate.io/build/runtime-storage/) that makes it
-  easy to use Substrate's efficient key-value database to manage the evolving
-  state of a blockchain.
-- Dispatchables: FRAME pallets define special types of functions that can be
-  invoked (dispatched) from outside of the runtime in order to update its state.
-- Events: Substrate uses
-  [events](https://docs.substrate.io/build/events-and-errors/) to notify users
-  of significant state changes.
-- Errors: When a dispatchable fails, it returns an error.
+### Get Proposal Results
+After the voting period has ended (e.g., 10 blocks):
 
-Each pallet has its own `Config` trait which serves as a configuration interface
-to generically define the types and parameters it depends on.
+1. Go to Developer -> Extrinsics.
 
-## Alternatives Installations
+2. Select an account from the "using the selected account" dropdown (e.g., Alice).
 
-Instead of installing dependencies and building this source directly, consider
-the following alternatives.
+3. In the "submit the following extrinsic" section:
 
-### Nix
+4. Select your custom pallet (e.g., palletVoting).
 
-Install [nix](https://nixos.org/) and
-[nix-direnv](https://github.com/nix-community/nix-direnv) for a fully
-plug-and-play experience for setting up the development environment. To get all
-the correct dependencies, activate direnv `direnv allow`.
+5. Select the `getPropsalResults` function.
 
-### Docker
+6. Enter the proposal_hash of the proposal you want to get the results for.
 
-Please follow the [Substrate Docker instructions
-here](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/docker/README.md) to
-build the Docker container with the Substrate Node Template binary.
+7. Click Submit Transaction and confirm.
+
+### Example Workflow
+#### 1. Creating a Proposal
+1. Select Alice.
+
+2. Call create_proposal with description "Proposal 1" and duration 10.
+
+#### Voting on the Proposal
+
+1. Select Bob.
+
+2. Call vote with the proposal_hash obtained from the proposal creation event and vote true.
+
+3. Select Charlie.
+
+4. Call vote with the same proposal_hash and vote false.
+
+### Finalizing the Proposal
+
+1. Wait for the voting period to end (e.g., 10 blocks).
+
+2. Select Alice.
+
+3. Call get_proposal_results with the proposal_hash.
+
+### Notes To test on -ve test case
+1. To test each account votes only once per proposal, Try voting with same account on the same proposal 2 times 
+
+2. Cant vote after the duration: Try to vote on proposal whos duration is already completed.
+
+3. Cant get the proposal results before the voting period ends : Try to call the get_proposal_result before the duration has ended.

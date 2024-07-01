@@ -67,7 +67,7 @@ Allows a user to create a new proposal.
 `description`: A description of the proposal.
 
 `duration`: The duration of the voting period in blocks(BlockNumberFor). i.e 1. BlockNumberFor is the duration to create one block which is default configured to 6 sec in substrate framework. 
-###### Calulation
+###### Calculation:
 If you want to have the duration as 1 minute i.e 60 sec , then below is the calculation
 
 ```sh
